@@ -1,4 +1,12 @@
 __pycache__/
 *.pyc
+*py.class
 venv/
+env/
+.env
+db
+*.sqlite3
 instance/
+.vscode/
+.DS_Store
+Thumbs.db
