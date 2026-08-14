@@ -1,0 +1,12 @@
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    # Rota principal que renderiza o template base.html
+    return render_template('base.html')
+
+if __name__ == '__main__':
+    # debug=True reinicia o servidor automaticamente ao salvar o código
+    app.run(debug=True)
