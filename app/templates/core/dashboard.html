@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <header>
+      <h2>Meus Pets</h2>
+      <a href="{{ url_for('core.novo_pet') }}" style="display: inline-block; margin-bottom: 20px; padding: 10px; background: #0d9488; color: white; text-decoration: none; border-radius: 5px;">+ Adicionar Pet</a>
+  </header>
+
+  <section>
+    {% if pets %}
+      <ul>
+        {% for pet in pets %}
+          <li style="border: 1px solid #ccc; margin-bottom: 10px; padding: 15px; border-radius: 5px;">
+            <h3>{{ pet['nome'] }} ({{ pet['especie'] }})</h3>
+            <p><strong>Raça:</strong> {{ pet['raca'] or 'Não informada' }}</p>
+            <p><strong>Microchip:</strong> {{ pet['numero_microchip'] or 'Sem microchip' }}</p>
+            <!-- Futuramente colocaremos botões de Editar, Excluir e Ver Prontuário aqui -->
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Você ainda não tem nenhum pet cadastrado.</p>
+    {% endif %}
+  </section>
+{% endblock %}

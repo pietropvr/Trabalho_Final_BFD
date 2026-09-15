@@ -24,11 +24,11 @@ def create_app():
     from . import auth
     app.register_blueprint(auth.bp)
 
-    # --- ROTAS GERAIS ---
+    # Registra o Blueprint principal (core - dashboard e pets)
+    from . import core
+    app.register_blueprint(core.bp)
     
-    @app.route('/')
-    def index():
-        return render_template('base.html')
+    # Indica ao Flask que a rota 'index' (página inicial '/') pertence ao blueprint core
+    app.add_url_rule('/', endpoint='index')
 
-    # Retorna o app para o Flask rodar
     return app
