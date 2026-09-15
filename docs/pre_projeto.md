@@ -5,6 +5,7 @@
 **Nome do projeto:** Caderneta Pet (nome provisório)
 
 **Equipe:**
+
 * **[Pietro Veloso Rosa]** (GitHub: [@pietropvr]) - Foco em Módulo de Tutores, Autenticação e Gestão de Pets (Banco, Rotas Flask, Tela JS).
 * **[Jéssica Vitória Almeida da Silva]** (GitHub: [@jwssic]) - Foco em Módulo de Histórico Médico, Exportação Standalone HTML e Testes.
 
@@ -50,10 +51,9 @@
 O sistema utilizará um banco de dados relacional com as seguintes tabelas principais:
 
 * **TUTOR:** id (PK), nome, email (Unique), senha_hash.
-* **PET:** id (PK), tutor_id (FK), nome, especie (Cão/Gato), raca, data_nascimento, peso_atual_kg.
+* **PET:** id (PK), tutor_id (FK), nome, especie (Cão/Gato), raca, data_nascimento, peso_atual_kg, numero_microchip (Opcional).
 * **REGISTRO_MEDICO:** id (PK), pet_id (FK), tipo_registro (Vacina/Consulta/Vermífugo), nome_evento, data_evento, data_proxima_dose (Opcional), nome_veterinario, observacoes.
-
-**Relacionamentos:** Um TUTOR possui N PETS. Um PET possui N REGISTROS_MEDICOS.
+* **Relacionamentos:** Um TUTOR possui N PETS. Um PET possui N REGISTROS_MEDICOS.
 
 ---
 
@@ -89,7 +89,7 @@ O sistema utilizará um banco de dados relacional com as seguintes tabelas princ
 
 ## 9. Autoavaliação de Riscos
 
-* **Risco Técnico Principal:** A geração do arquivo standalone HTML/JS exige embutir informações dinâmicas diretamente nas tags `<style>` e `<script>` via Jinja2, sem quebrar a sintaxe. 
+* **Risco Técnico Principal:** A geração do arquivo standalone HTML/JS exige embutir informações dinâmicas diretamente nas tags `<style>` e `<script>` via Jinja2, sem quebrar a sintaxe.
   * **Mitigação:** Criaremos um template específico e isolado só para isso, testando sua renderização desde a primeira semana.
 * **O "Caminho Feliz" Mínimo (Plano de Contingência):** Caso ocorram atrasos severos, a aplicação entregará valor permitindo criar uma conta, cadastrar um pet, inserir um registro de vacina no banco de dados SQLite e exibi-lo na tela.
 * **Gestão da Dupla:** Como faremos Pull Requests constantes, se um membro ficar indisponível perto da entrega, o outro terá total conhecimento da base de código para garantir o "caminho feliz" mínimo exigido.
