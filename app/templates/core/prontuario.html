@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <header style="margin-bottom: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h2 style="margin-bottom: 5px;">Prontuário de {{ pet['nome'] }}</h2>
+        <a href="{{ url_for('core.index') }}" style="text-decoration: none; color: #0284c7; font-weight: bold;">&larr; Voltar ao Dashboard</a>
+      </div>
+      
+      <!-- Botão de Exportação -->
+      <a href="{{ url_for('core.exportar_prontuario', id=pet['id']) }}" style="background-color: #10b981; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">Exportar para CSV</a>
+  </header>
+
+  <section style="display: flex; gap: 40px; flex-wrap: wrap;">
+    
+    <!-- Coluna Esquerda: Formulário -->
+    <div style="flex: 1; min-width: 300px; background: #f9fafb; padding: 25px; border-radius: 8px; border: 1px solid #e5e7eb;">
+      <h3 style="margin-top: 0;">Adicionar Novo Registo</h3>
+      
+      <form method="post">
+        <label for="tipo">Tipo de Registo</label>
+        <select name="tipo" id="tipo" required>
+          <option value="" disabled selected>Selecione...</option>
+          <option value="Vacina">Vacina</option>
+          <option value="Consulta">Consulta Veterinária</option>
+          <option value="Vermífugo">Vermífugo / Desparasitante</option>
+          <option value="Exame">Exame Médico</option>
+          <option value="Cirurgia">Cirurgia</option>
+          <option value="Outro">Outro</option>
+        </select>
+
+        <label for="descricao" style="margin-top: 15px; display: block;">Descrição / Detalhes</label>
+        <input type="text" name="descricao" id="descricao" placeholder="Ex: Vacina da Raiva, Clínica XYZ..." required style="width: 100%;">
+
+        <label for="data_registro" style="margin-top: 15px; display: block;">Data do Registo</label>
+        <input type="date" name="data_registro" id="data_registro" required style="width: 100%;">
+
+        <label for="data_retorno" style="margin-top: 15px; display: block;">Data de Retorno/Reforço (Opcional)</label>
+        <input type="date" name="data_retorno" id="data_retorno" style="width: 100%;">
+
+        <button type="submit" style="margin-top: 25px; width: 100%; background: #0d9488; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">Guardar Registo</button>
+      </form>
+    </div>
+
+    <!-- Coluna Direita: Histórico -->
+    <!-- Coluna Direita: Histórico -->
+    <div style="flex: 2; min-width: 300px;">
+      <h3 style="margin-top: 0;">Histórico Médico</h3>
+      
+      {% if registos %}
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          {% for reg in registos %}
+            <li style="border-left: 5px solid #0d9488; background: #ffffff; padding: 15px 20px; margin-bottom: 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="font-size: 1.1em; color: #111827;">{{ reg['tipo'] }}</strong>
+                <!-- Formatação da data para DD/MM/AAAA -->
+                <span style="color: #6b7280; font-size: 0.9em; background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">
+                  {{ reg['data_registro'].split('-') | reverse | join('/') }}
+                </span>
+              </div>
+              
+              <p style="margin: 0 0 10px 0; color: #4b5563;">{{ reg['descricao'] }}</p>
+              
+              {% if reg['data_retorno'] %}
+                <div style="background: #fffbeb; color: #b45309; padding: 8px 12px; border-radius: 4px; font-size: 0.9em; font-weight: bold; display: inline-block; margin-bottom: 10px;">
+                  Atenção: Retorno agendado para {{ reg['data_retorno'].split('-') | reverse | join('/') }}
+                </div>
+              {% endif %}
+
+              <!-- Botões de Ação do Registo -->
+              <div style="margin-top: 10px; border-top: 1px solid #f3f4f6; padding-top: 10px;">
+                <a href="{{ url_for('core.editar_registro', id=reg['id']) }}" style="margin-right: 15px; text-decoration: none; color: #0284c7; font-weight: bold; font-size: 0.9em;">Editar</a>
+                <form action="{{ url_for('core.excluir_registro', id=reg['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem a certeza que deseja eliminar este registo médico?');">
+                  <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline; font-weight: bold; padding: 0; font-size: 0.9em;">Eliminar</button>
+                </form>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div style="background: #f9fafb; padding: 30px; text-align: center; border-radius: 8px; border: 1px dashed #d1d5db;">
+          <p style="color: #6b7280; margin: 0;">Nenhum registo médico encontrado para este pet.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

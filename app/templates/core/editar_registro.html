@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <header style="margin-bottom: 30px;">
+      <h2>Editar Registo de {{ registro['nome'] }}</h2>
+  </header>
+
+  <div style="background: #f9fafb; padding: 25px; border-radius: 8px; border: 1px solid #e5e7eb; max-width: 500px;">
+    <form method="post">
+      <label for="tipo">Tipo de Registo</label>
+      <select name="tipo" id="tipo" required style="width: 100%; margin-bottom: 15px;">
+        <option value="Vacina" {% if registro['tipo'] == 'Vacina' %}selected{% endif %}>Vacina</option>
+        <option value="Consulta" {% if registro['tipo'] == 'Consulta' %}selected{% endif %}>Consulta Veterinária</option>
+        <option value="Vermífugo" {% if registro['tipo'] == 'Vermífugo' %}selected{% endif %}>Vermífugo / Desparasitante</option>
+        <option value="Exame" {% if registro['tipo'] == 'Exame' %}selected{% endif %}>Exame Médico</option>
+        <option value="Cirurgia" {% if registro['tipo'] == 'Cirurgia' %}selected{% endif %}>Cirurgia</option>
+        <option value="Outro" {% if registro['tipo'] == 'Outro' %}selected{% endif %}>Outro</option>
+      </select>
+
+      <label for="descricao" style="display: block;">Descrição / Detalhes</label>
+      <input type="text" name="descricao" id="descricao" value="{{ registro['descricao'] }}" required style="width: 100%; margin-bottom: 15px;">
+
+      <label for="data_registro" style="display: block;">Data do Registo</label>
+      <input type="date" name="data_registro" id="data_registro" value="{{ registro['data_registro'] }}" required style="width: 100%; margin-bottom: 15px;">
+
+      <label for="data_retorno" style="display: block;">Data de Retorno (Opcional)</label>
+      <input type="date" name="data_retorno" id="data_retorno" value="{{ registro['data_retorno'] }}" style="width: 100%; margin-bottom: 15px;">
+
+      <button type="submit" style="width: 100%; background: #0d9488; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">Guardar Alterações</button>
+    </form>
+  </div>
+  
+  <br>
+  <a href="{{ url_for('core.prontuario', id=registro['pet_id']) }}" style="color: #0284c7; text-decoration: none; font-weight: bold;">&larr; Cancelar e Voltar</a>
+{% endblock %}

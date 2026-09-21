@@ -40,3 +40,16 @@ CREATE TABLE registro_medico (
     -- Chave Estrangeira: Conecta o prontuário ao respectivo Pet
     FOREIGN KEY (pet_id) REFERENCES pet(id)
 );
+
+DROP TABLE IF EXISTS registro_medico;
+
+CREATE TABLE registro_medico (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  pet_id INTEGER NOT NULL,
+  tipo TEXT NOT NULL,
+  descricao TEXT NOT NULL,
+  data_registro DATE NOT NULL,
+  data_retorno DATE,
+  FOREIGN KEY (pet_id) REFERENCES pet (id)
+);
+

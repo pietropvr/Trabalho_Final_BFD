@@ -5,17 +5,21 @@
   <form method="post">
     <label for="nome">Nome do Pet *</label>
     <input type="text" name="nome" id="nome" required>
-
+    
     <label for="especie">Espécie *</label>
-    <select name="especie" id="especie" required>
-        <option value="">Selecione...</option>
-        <option value="Cão">Cão</option>
-        <option value="Gato">Gato</option>
-        <option value="Outro">Outro</option>
+    <!-- O onchange deteta quando o utilizador muda a opção -->
+    <select name="especie" id="especie" onchange="carregarRacas()" required>
+      <option value="" disabled selected>Selecione a espécie...</option>
+      <option value="Cachorro">Cachorro</option>
+      <option value="Gato">Gato</option>
     </select>
 
     <label for="raca">Raça</label>
-    <input type="text" name="raca" id="raca" placeholder="Ex: Poodle, Siamês">
+    <!-- O input agora está ligado à datalist abaixo -->
+    <input list="lista-racas" name="raca" id="raca" placeholder="Digite ou selecione a raça..." required>
+    <datalist id="lista-racas">
+        <!-- As opções serão injetadas aqui pelo JavaScript -->
+    </datalist>
 
     <label for="data_nascimento">Data de Nascimento (Aproximada)</label>
     <input type="date" name="data_nascimento" id="data_nascimento">
@@ -29,3 +33,43 @@
     <button type="submit">Salvar Pet</button>
   </form>
 {% endblock %}
+
+<script>
+  async function carregarRacas() {
+    const especie = document.getElementById('especie').value;
+    const datalist = document.getElementById('lista-racas');
+    
+    // Limpa a lista atual sempre que a espécie mudar
+    datalist.innerHTML = '';
+
+    // Adiciona sempre a opção SRD no topo
+    const optSrd = document.createElement('option');
+    optSrd.value = 'SRD (Sem Raça Definida)';
+    datalist.appendChild(optSrd);
+
+    if (!especie) return;
+
+    // Define qual API chamar com base na espécie escolhida
+    let url = '';
+    if (especie === 'Cachorro') {
+      url = 'https://api.thedogapi.com/v1/breeds';
+    } else if (especie === 'Gato') {
+      url = 'https://api.thecatapi.com/v1/breeds';
+    }
+
+    try {
+      // Faz o pedido assíncrono à API
+      const resposta = await fetch(url);
+      const racas = await resposta.json();
+
+      // Percorre os dados recebidos e cria uma nova opção para cada raça
+      racas.forEach(raca => {
+        const opcao = document.createElement('option');
+        opcao.value = raca.name;
+        datalist.appendChild(opcao);
+      });
+    } catch (erro) {
+      console.error('Erro ao carregar as raças da API:', erro);
+    }
+  }
+</script>

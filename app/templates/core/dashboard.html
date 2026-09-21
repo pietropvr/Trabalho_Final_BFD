@@ -5,16 +5,53 @@
       <h2>Meus Pets</h2>
       <a href="{{ url_for('core.novo_pet') }}" style="display: inline-block; margin-bottom: 20px; padding: 10px; background: #0d9488; color: white; text-decoration: none; border-radius: 5px;">+ Adicionar Pet</a>
   </header>
+  
+  <!-- PAINEL DE ALERTAS DE SAÚDE -->
+  {% if alertas %}
+    <section style="background: #fffbeb; border-left: 5px solid #f59e0b; padding: 15px 20px; margin-bottom: 30px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; color: #b45309; display: flex; align-items: center;">
+        <span style="font-size: 1.2em; margin-right: 8px;">⚠️</span> Alertas de Saúde
+      </h3>
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for alerta in alertas %}
+          <li style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #fde68a;">
+            <strong>{{ alerta['nome_pet'] }}:</strong> {{ alerta['tipo'] }} ({{ alerta['descricao'] }}) 
+            
+            {% if alerta['venceu'] %}
+              <span style="color: #dc2626; font-weight: bold;">
+                - Vencido há {{ alerta['dias_restantes'] }} dia(s) ({{ alerta['data_formatada'] | join('/') }})
+              </span>
+            {% else %}
+              <span style="color: #d97706; font-weight: bold;">
+                - Vence em {{ alerta['dias_restantes'] }} dia(s) ({{ alerta['data_formatada'] | join('/') }})
+              </span>
+            {% endif %}
+            
+            <a href="{{ url_for('core.prontuario', id=alerta['pet_id']) }}" style="margin-left: 10px; font-size: 0.9em; color: #0284c7; text-decoration: none;">Ver prontuário</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
 
   <section>
     {% if pets %}
-      <ul>
+      <ul style="list-style: none; padding: 0;">
         {% for pet in pets %}
           <li style="border: 1px solid #ccc; margin-bottom: 10px; padding: 15px; border-radius: 5px;">
             <h3>{{ pet['nome'] }} ({{ pet['especie'] }})</h3>
             <p><strong>Raça:</strong> {{ pet['raca'] or 'Não informada' }}</p>
             <p><strong>Microchip:</strong> {{ pet['numero_microchip'] or 'Sem microchip' }}</p>
-            <!-- Futuramente colocaremos botões de Editar, Excluir e Ver Prontuário aqui -->
+            
+            <div style="margin-top: 15px;">
+              <a href="{{ url_for('core.editar_pet', id=pet['id']) }}" style="margin-right: 15px; text-decoration: none; color: #0284c7; font-weight: bold;">Editar</a>
+              
+              <form action="{{ url_for('core.excluir_pet', id=pet['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir este pet? Todos os registros médicos dele serão perdidos.');">
+                <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline; font-weight: bold; padding: 0; font-size: 16px;">Excluir</button>
+              </form>
+
+              <a href="{{ url_for('core.prontuario', id=pet['id']) }}" style="margin-right: 15px; text-decoration: none; color: #16a34a; font-weight: bold;">Ver Prontuário</a>
+            </div>
           </li>
         {% endfor %}
       </ul>
