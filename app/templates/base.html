@@ -3,18 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <title>Caderneta PET - Prontuário Digital</title>
+    
+    <!-- Importação da Nova Fonte: Nunito -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Inclusão do Favicon (Patinha em formato texto/SVG) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐾</text></svg>">
     
     <style>
         /* ========================================================
            1. RESET & VARIÁVEIS (Acessibilidade e Contraste)
            ======================================================== */
         :root {
-            --cor-primaria: #0f172a;
-            --cor-secundaria: #0ea5e9;
-            --cor-fundo: #f8fafc;
-            --cor-texto: #1e293b;
-            --cor-texto-claro: #94a3b8;
+            --cor-primaria: #064e3b;    /* Verde muito escuro (Menu) */
+            --cor-secundaria: #10b981;  /* Verde esmeralda (Destaques) */
+            --cor-destaque: #f59e0b;    /* Laranja (Avisos/Botões secundários) */
+            --cor-fundo: #f3f4f6;
+            --cor-texto: #1f2937;
+            --cor-texto-claro: #9ca3af;
             --cor-branco: #ffffff;
         }
 
@@ -22,7 +30,8 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Aplicando a nova fonte */
+            font-family: 'Nunito', Tahoma, sans-serif;
         }
 
         body {
@@ -30,6 +39,34 @@
             color: var(--cor-texto);
             line-height: 1.6;
         }
+
+        /* --- MELHORIA DOS CAMPOS DE DIGITAÇÃO E SELEÇÃO --- */
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #4b5563;
+            background-color: #f9fafb;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--cor-secundaria);
+            background-color: var(--cor-branco);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); /* Efeito de brilho verde ao clicar */
+        }
+        
+        button {
+            border-radius: 8px;
+            transition: transform 0.1s, filter 0.3s;
+        }
+        button:active { transform: scale(0.98); }
+        button:hover { filter: brightness(1.1); }
 
         /* ========================================================
            2. CSS GRID - LAYOUT PRINCIPAL (Requisito da Rubrica)
@@ -160,7 +197,9 @@
         <!-- Menu Lateral Semântico -->
         <aside class="sidebar">
             <header>
-                <h1>Caderneta PET</h1>
+                <h1 style="display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 1.6rem;">
+    <span style="font-size: 2rem;">🐾</span> Caderneta PET
+                </h1>
             </header>
             
             <!-- Acessibilidade: aria-label orienta os leitores de ecrã -->
