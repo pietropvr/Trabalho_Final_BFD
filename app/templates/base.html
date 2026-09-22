@@ -4,51 +4,210 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Caderneta PET - Prontuário Digital</title>
+    
+    <style>
+        /* ========================================================
+           1. RESET & VARIÁVEIS (Acessibilidade e Contraste)
+           ======================================================== */
+        :root {
+            --cor-primaria: #0f172a;
+            --cor-secundaria: #0ea5e9;
+            --cor-fundo: #f8fafc;
+            --cor-texto: #1e293b;
+            --cor-texto-claro: #94a3b8;
+            --cor-branco: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            line-height: 1.6;
+        }
+
+        /* ========================================================
+           2. CSS GRID - LAYOUT PRINCIPAL (Requisito da Rubrica)
+           ======================================================== */
+        .app-layout {
+            display: grid;
+            /* No PC: Coluna 1 (Menu) com 260px, Coluna 2 (Conteúdo) ocupa o resto (1fr) */
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
+
+        /* BARRA LATERAL (Baseado no wireframe do Dashboard) */
+        .sidebar {
+            background-color: var(--cor-primaria);
+            color: var(--cor-branco);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #1e293b;
+        }
+
+        .sidebar h1 {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            color: var(--cor-branco);
+            text-align: center;
+        }
+
+        /* NAVEGAÇÃO */
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sidebar nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 12px 15px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        /* Acessibilidade: Feedback visual claro no Hover e Focus */
+        .sidebar nav a:hover, 
+        .sidebar nav a:focus {
+            background-color: #1e293b;
+            color: var(--cor-secundaria);
+            outline: 2px solid var(--cor-secundaria);
+        }
+
+        .user-info {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #334155;
+            font-size: 0.9rem;
+            color: var(--cor-texto-claro);
+            text-align: center;
+        }
+
+        /* ÁREA DE CONTEÚDO PRINCIPAL */
+        .main-content {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* ========================================================
+           3. MEDIA QUERIES - RESPONSIVIDADE (Requisito da Rubrica)
+           ======================================================== */
+        @media (max-width: 768px) {
+            .app-layout {
+                /* No Telemóvel: Passa a ter apenas 1 coluna empilhada */
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                padding: 15px 20px;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                border-right: none;
+                border-bottom: 2px solid var(--cor-secundaria);
+            }
+
+            .sidebar h1 {
+                margin-bottom: 0;
+                font-size: 1.2rem;
+            }
+
+            .sidebar nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .sidebar nav a {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+
+            .user-info {
+                display: none; /* Esconde a info extra no mobile para poupar espaço */
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+        }
+
+        /* ESTILOS DE MENSAGENS FLASH (Alertas) */
+        .alert {
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .alert-success { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Caderneta PET</h1>
-        <nav>
-            <a href="{{ url_for('index') }}">Início</a>
+    <!-- Container Principal do CSS Grid -->
+    <div class="app-layout">
+        
+        <!-- Menu Lateral Semântico -->
+        <aside class="sidebar">
+            <header>
+                <h1>Caderneta PET</h1>
+            </header>
             
-            <!-- Inteligência do Jinja2: Verifica se existe um tutor na sessão -->
+            <!-- Acessibilidade: aria-label orienta os leitores de ecrã -->
+            <nav aria-label="Menu de Navegação Principal">
+                <a href="{{ url_for('core.index') }}">Dashboard</a>
+                
+                {% if g.tutor %}
+                    <!-- Aqui pode adicionar rotas futuras como "Novo Pet" ou "Perfil" -->
+                    <a href="{{ url_for('auth.logout') }}">Sair</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}">Entrar</a>
+                    <a href="{{ url_for('auth.register') }}">Cadastrar</a>
+                {% endif %}
+            </nav>
+
             {% if g.tutor %}
-                <span>Olá, {{ g.tutor['nome'] }}!</span>
-                <a href="{{ url_for('auth.logout') }}">Sair</a>
-            {% else %}
-                <a href="{{ url_for('auth.login') }}">Entrar</a>
-                <a href="{{ url_for('auth.register') }}">Cadastrar</a>
+                <div class="user-info">
+                    Logado como:<br>
+                    <strong>{{ g.tutor['nome'] }}</strong>
+                </div>
             {% endif %}
-        </nav>
-    </header>
-    
-    <main>
-        <!-- Esta seção captura e exibe mensagens de erro (ex: "Senha incorreta") -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    {% if category == 'success' %}
-                        <div style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
-                            {{ message }}
-                        </div>
-                    {% else %}
-                        <div style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
-                            {{ message }}
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        </aside>
+        
+        <!-- Conteúdo Principal Semântico -->
+        <main class="main-content" role="main">
             
-        <!-- Injeção de conteúdo (ex: login.html) -->
-        {% block content %}
-            <h2>Bem-vindo ao Prontuário Digital</h2>
-            <p>Centralize o histórico de saúde do seu pet de forma segura.</p>
-        {% endblock %}
-    </main>
-    
-    <footer>
-        <p>Projeto Integrador - Caderneta PET</p>
-    </footer>
+            <!-- Tratamento de Mensagens Flash com role="alert" para leitores de ecrã -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {% if category == 'success' %}alert-success{% else %}alert-error{% endif %}" role="alert" aria-live="assertive">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+                
+            <!-- Injeção das outras páginas (prontuario, dashboard, etc.) -->
+            {% block content %}
+            {% endblock %}
+            
+            <!-- Rodapé Semântico -->
+            <footer style="margin-top: auto; padding-top: 30px; text-align: center; color: var(--cor-texto-claro); font-size: 0.9em;">
+                <p>&copy; 2026 Projeto Integrador - Caderneta PET</p>
+            </footer>
+        </main>
+        
+    </div>
 </body>
 </html>

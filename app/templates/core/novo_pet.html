@@ -8,7 +8,7 @@
     
     <label for="especie">Espécie *</label>
     <!-- O onchange deteta quando o utilizador muda a opção -->
-    <select name="especie" id="especie" onchange="carregarRacas()" required>
+    <select name="especie" id="especie" required style="width: 100%; padding: 10px; margin-bottom: 15px;">
       <option value="" disabled selected>Selecione a espécie...</option>
       <option value="Cachorro">Cachorro</option>
       <option value="Gato">Gato</option>
@@ -16,7 +16,7 @@
 
     <label for="raca">Raça</label>
     <!-- O input agora está ligado à datalist abaixo -->
-    <input list="lista-racas" name="raca" id="raca" placeholder="Digite ou selecione a raça..." required>
+    <input list="lista-racas" name="raca" id="raca" placeholder="Selecione a espécie primeiro..." required style="width: 100%; padding: 10px; margin-bottom: 15px;">
     <datalist id="lista-racas">
         <!-- As opções serão injetadas aqui pelo JavaScript -->
     </datalist>
@@ -32,44 +32,77 @@
 
     <button type="submit">Salvar Pet</button>
   </form>
-{% endblock %}
+
 
 <script>
+  // O uso do "async" permite que a função espere pela resposta da API sem congelar a página para o utilizador
   async function carregarRacas() {
-    const especie = document.getElementById('especie').value;
-    const datalist = document.getElementById('lista-racas');
-    
-    // Limpa a lista atual sempre que a espécie mudar
+    // 1. Captura os elementos do HTML que vamos ler e manipular
+    const especie = document.getElementById('especie').value; // O valor escolhido (Cachorro/Gato)
+    const datalist = document.getElementById('lista-racas');  // A lista onde vamos injetar as opções
+    const inputRaca = document.getElementById('raca');        // O campo onde o tutor digita
+
+    // 2. Limpa qualquer resultado anterior caso o utilizador mude de "Cachorro" para "Gato"
     datalist.innerHTML = '';
 
-    // Adiciona sempre a opção SRD no topo
+    // 3. Adiciona sempre a opção padrão no topo da lista
     const optSrd = document.createElement('option');
     optSrd.value = 'SRD (Sem Raça Definida)';
     datalist.appendChild(optSrd);
 
+    // Se nenhuma espécie for selecionada, interrompe a execução da função
     if (!especie) return;
 
-    // Define qual API chamar com base na espécie escolhida
-    let url = '';
-    if (especie === 'Cachorro') {
-      url = 'https://api.thedogapi.com/v1/breeds';
-    } else if (especie === 'Gato') {
-      url = 'https://api.thecatapi.com/v1/breeds';
-    }
+    // 4. Feedback visual: avisa o utilizador sobre o carregamento e bloqueia o campo temporariamente
+    inputRaca.placeholder = "A carregar raças da API...";
+    inputRaca.disabled = true;
 
     try {
-      // Faz o pedido assíncrono à API
-      const resposta = await fetch(url);
+      // 1. Aponta para a API segura que criámos no nosso backend (Flask)
+      const urlLocal = `/api/racas/${especie}`;
+
+      // 2. FAZ O PEDIDO
+      const resposta = await fetch(urlLocal);
+      
+      // 3. Valida se o Flask respondeu com sucesso
+      if (!resposta.ok) {
+        throw new Error('Falha no servidor interno: ' + resposta.status);
+      }
+
+      // 4. Converte os dados e preenche a lista
       const racas = await resposta.json();
 
-      // Percorre os dados recebidos e cria uma nova opção para cada raça
+      // 5. Percorre a lista de raças devolvida e cria as tags <option> dinamicamente
       racas.forEach(raca => {
         const opcao = document.createElement('option');
-        opcao.value = raca.name;
+        opcao.value = raca.name; // .name é a chave que a The Dog/Cat API usa para o nome da raça
         datalist.appendChild(opcao);
       });
+
+      // Restaura o campo indicando que a lista está pronta para uso
+      inputRaca.placeholder = "Clique para selecionar ou digite a raça...";
+      
     } catch (erro) {
-      console.error('Erro ao carregar as raças da API:', erro);
+      // Se a API cair ou faltar internet, avisa no console e permite a digitação manual
+      console.error('Erro de integração com a API externa:', erro);
+      inputRaca.placeholder = "Erro na API. Digite a raça manualmente.";
+      
+    } finally {
+      // O finally executa sempre, dando certo ou errado, para garantir que o campo é desbloqueado
+      inputRaca.disabled = false;
     }
   }
+
+  // Ligação do evento via JavaScript Puro (Bulletproof)
+  document.addEventListener('DOMContentLoaded', function() {
+    // 1. Procura o elemento da espécie na página
+    const selectEspecie = document.getElementById('especie');
+    
+    // 2. Se o elemento existir, adiciona o escutador de eventos
+    if (selectEspecie) {
+      selectEspecie.addEventListener('change', carregarRacas);
+    }
+  });
 </script>
+
+{% endblock %}

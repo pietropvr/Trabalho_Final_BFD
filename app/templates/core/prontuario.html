@@ -1,25 +1,62 @@
 {% extends 'base.html' %}
 
 {% block content %}
+  <style>
+    .card-historico {
+      padding: 15px 20px; 
+      margin-bottom: 15px; 
+      border-radius: 4px; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    /* Variações de cor do card baseadas na classe POO (status_alerta) */
+    .status-atrasado { border-left: 5px solid #ef4444; background-color: #fef2f2; }
+    .status-proximo  { border-left: 5px solid #f59e0b; background-color: #fffbeb; }
+    .status-ok       { border-left: 5px solid #10b981; background-color: #ffffff; }
+
+    /* Variações de cor do texto da data de retorno */
+    .texto-atrasado { color: #b91c1c; font-size: 0.9em; font-weight: bold; margin-bottom: 10px; }
+    .texto-proximo  { color: #b45309; font-size: 0.9em; font-weight: bold; margin-bottom: 10px; }
+    .texto-ok       { color: #047857; font-size: 0.9em; font-weight: bold; margin-bottom: 10px; }
+
+    /* Layout para a seção principal (Preparando terreno para o CSS Grid/Flexbox) */
+    .container-prontuario {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .coluna-form {
+      flex: 1;
+      min-width: 300px;
+      background: #f9fafb;
+      padding: 25px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+    .coluna-historico {
+      flex: 2;
+      min-width: 300px;
+    }
+  </style>
+
   <header style="margin-bottom: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
       <div>
         <h2 style="margin-bottom: 5px;">Prontuário de {{ pet['nome'] }}</h2>
         <a href="{{ url_for('core.index') }}" style="text-decoration: none; color: #0284c7; font-weight: bold;">&larr; Voltar ao Dashboard</a>
       </div>
       
-      <!-- Botão de Exportação -->
-      <a href="{{ url_for('core.exportar_prontuario', id=pet['id']) }}" style="background-color: #10b981; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">Exportar para CSV</a>
+      <a href="{{ url_for('core.exportar_prontuario', id=pet['id']) }}" style="background-color: #10b981; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">Exportar Prontuário</a>
   </header>
 
-  <section style="display: flex; gap: 40px; flex-wrap: wrap;">
+  <section class="container-prontuario">
     
-    <!-- Coluna Esquerda: Formulário -->
-    <div style="flex: 1; min-width: 300px; background: #f9fafb; padding: 25px; border-radius: 8px; border: 1px solid #e5e7eb;">
+    <!-- Coluna Esquerda: Formulário de Inserção -->
+    <div class="coluna-form">
       <h3 style="margin-top: 0;">Adicionar Novo Registo</h3>
       
       <form method="post">
         <label for="tipo">Tipo de Registo</label>
-        <select name="tipo" id="tipo" required>
+        <select name="tipo" id="tipo" required style="width: 100%; padding: 8px; margin-top: 5px;">
           <option value="" disabled selected>Selecione...</option>
           <option value="Vacina">Vacina</option>
           <option value="Consulta">Consulta Veterinária</option>
@@ -30,45 +67,54 @@
         </select>
 
         <label for="descricao" style="margin-top: 15px; display: block;">Descrição / Detalhes</label>
-        <input type="text" name="descricao" id="descricao" placeholder="Ex: Vacina da Raiva, Clínica XYZ..." required style="width: 100%;">
+        <input type="text" name="descricao" id="descricao" placeholder="Ex: Vacina da Raiva, Clínica XYZ..." required style="width: 100%; padding: 8px; margin-top: 5px;">
 
         <label for="data_registro" style="margin-top: 15px; display: block;">Data do Registo</label>
-        <input type="date" name="data_registro" id="data_registro" required style="width: 100%;">
+        <input type="date" name="data_registro" id="data_registro" required style="width: 100%; padding: 8px; margin-top: 5px;">
 
         <label for="data_retorno" style="margin-top: 15px; display: block;">Data de Retorno/Reforço (Opcional)</label>
-        <input type="date" name="data_retorno" id="data_retorno" style="width: 100%;">
+        <input type="date" name="data_retorno" id="data_retorno" style="width: 100%; padding: 8px; margin-top: 5px;">
 
         <button type="submit" style="margin-top: 25px; width: 100%; background: #0d9488; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">Guardar Registo</button>
       </form>
     </div>
 
-    <!-- Coluna Direita: Histórico -->
-    <!-- Coluna Direita: Histórico -->
-    <div style="flex: 2; min-width: 300px;">
+    <!-- Coluna Direita: Histórico Dinâmico -->
+    <div class="coluna-historico">
       <h3 style="margin-top: 0;">Histórico Médico</h3>
       
       {% if registos %}
         <ul style="list-style: none; padding: 0; margin: 0;">
           {% for reg in registos %}
-            <li style="border-left: 5px solid #0d9488; background: #ffffff; padding: 15px 20px; margin-bottom: 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            
+            <!-- Injeta apenas a classe CSS dinamicamente, mantendo o HTML limpo -->
+            <li class="card-historico status-{{ reg['status_alerta'] }}">
+              
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <strong style="font-size: 1.1em; color: #111827;">{{ reg['tipo'] }}</strong>
-                <!-- Formatação da data para DD/MM/AAAA -->
                 <span style="color: #6b7280; font-size: 0.9em; background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">
-                  {{ reg['data_registro'].split('-') | reverse | join('/') }}
+                  Realizado em: {{ reg['data_registro'].split('-') | reverse | join('/') }}
                 </span>
               </div>
               
               <p style="margin: 0 0 10px 0; color: #4b5563;">{{ reg['descricao'] }}</p>
               
               {% if reg['data_retorno'] %}
-                <div style="background: #fffbeb; color: #b45309; padding: 8px 12px; border-radius: 4px; font-size: 0.9em; font-weight: bold; display: inline-block; margin-bottom: 10px;">
-                  Atenção: Retorno agendado para {{ reg['data_retorno'].split('-') | reverse | join('/') }}
+                <!-- Aplica a classe de texto de acordo com o status -->
+                <div class="texto-{{ reg['status_alerta'] }}">
+                  Data de Retorno: {{ reg['data_retorno'].split('-') | reverse | join('/') }}
+                  
+                  {% if reg['status_alerta'] == 'atrasado' %}
+                    <span style="background: #dc2626; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 10px; font-weight: normal;">⚠️ Atrasado</span>
+                  {% elif reg['status_alerta'] == 'proximo' %}
+                    <span style="background: #f59e0b; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 10px; font-weight: normal;">⏳ Vence em breve</span>
+                  {% elif reg['status_alerta'] == 'ok' %}
+                    <span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 10px; font-weight: normal;">✅ Em dia</span>
+                  {% endif %}
                 </div>
               {% endif %}
 
-              <!-- Botões de Ação do Registo -->
-              <div style="margin-top: 10px; border-top: 1px solid #f3f4f6; padding-top: 10px;">
+              <div style="margin-top: 10px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
                 <a href="{{ url_for('core.editar_registro', id=reg['id']) }}" style="margin-right: 15px; text-decoration: none; color: #0284c7; font-weight: bold; font-size: 0.9em;">Editar</a>
                 <form action="{{ url_for('core.excluir_registro', id=reg['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem a certeza que deseja eliminar este registo médico?');">
                   <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline; font-weight: bold; padding: 0; font-size: 0.9em;">Eliminar</button>

@@ -1,10 +1,11 @@
-import csv
+import json
 from io import StringIO
 from flask import Response
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 from app.db import get_db
 from app.auth import login_required
 from datetime import datetime, date
+from app.utils import CalculadoraAlertas
 
 # Cria o Blueprint para as rotas principais (sem prefixo de URL)
 bp = Blueprint('core', __name__)
@@ -139,7 +140,7 @@ def excluir_pet(id):
 @login_required
 def prontuario(id):
     db = get_db()
-    # Confirma se o pet existe e pertence ao tutor logado
+    
     pet = db.execute(
         'SELECT * FROM pet WHERE id = ? AND tutor_id = ?', (id, g.tutor['id'])
     ).fetchone()
@@ -148,7 +149,6 @@ def prontuario(id):
         flash('Pet não encontrado ou acesso negado.')
         return redirect(url_for('core.index'))
 
-    # Se o formulário for submetido, guarda o novo registo
     if request.method == 'POST':
         tipo = request.form['tipo']
         descricao = request.form['descricao']
@@ -164,12 +164,21 @@ def prontuario(id):
         flash('Registo médico adicionado com sucesso!')
         return redirect(url_for('core.prontuario', id=id))
 
-    # Procura todo o histórico médico deste pet para exibir no ecrã
-    registos = db.execute(
+    registos_db = db.execute(
         'SELECT * FROM registro_medico WHERE pet_id = ? ORDER BY data_registro DESC', (id,)
     ).fetchall()
 
-    return render_template('core/prontuario.html', pet=pet, registos=registos)
+    # --- APLICAÇÃO DA CLASSE POO ---
+    calculadora = CalculadoraAlertas(dias_aviso=30)
+    registos_processados = []
+    
+    for reg in registos_db:
+        reg_dict = dict(reg) # Converte a linha da base de dados para um dicionário editável
+        # Usa a classe para calcular o status e guarda o resultado na chave 'status_alerta'
+        reg_dict['status_alerta'] = calculadora.analisar_vencimento(reg_dict['data_retorno'])
+        registos_processados.append(reg_dict)
+
+    return render_template('core/prontuario.html', pet=pet, registos=registos_processados)
 
 @bp.route('/registro/<int:id>/editar', methods=('GET', 'POST'))
 @login_required
@@ -222,7 +231,7 @@ def excluir_registro(id):
 @bp.route('/pet/<int:id>/exportar')
 @login_required
 def exportar_prontuario(id):
-    from flask import make_response # Importamos a ferramenta robusta do Flask
+    from flask import make_response
     
     db = get_db()
     pet = db.execute(
@@ -237,37 +246,57 @@ def exportar_prontuario(id):
         'SELECT * FROM registro_medico WHERE pet_id = ? ORDER BY data_registro DESC', (id,)
     ).fetchall()
 
-    si = StringIO()
-    si.write('\ufeff') # BOM: Garante que o Excel não desconfigura os acentos
-    
-    writer = csv.writer(si, delimiter=';') 
-    
-    writer.writerow(['CADERNETA PET - HISTORICO MEDICO'])
-    writer.writerow(['Nome do Pet:', pet['nome']])
-    writer.writerow(['Especie:', pet['especie']])
-    writer.writerow(['Raca:', pet['raca'] or 'Nao informada'])
-    writer.writerow(['Microchip:', pet['numero_microchip'] or 'Sem microchip'])
-    writer.writerow([]) 
-    
-    writer.writerow(['DATA DO REGISTO', 'TIPO', 'DESCRICAO', 'DATA DE RETORNO'])
-    
-    for reg in registros:
-        data_reg = reg['data_registro'].split('-')[::-1]
-        data_reg_formatada = '/'.join(data_reg)
-        
-        data_ret_formatada = ''
-        if reg['data_retorno']:
-            data_ret = reg['data_retorno'].split('-')[::-1]
-            data_ret_formatada = '/'.join(data_ret)
+    # Converte as linhas do banco de dados (sqlite3.Row) para dicionários comuns do Python
+    pet_dict = dict(pet)
+    registros_dict = [dict(reg) for reg in registros]
 
-        writer.writerow([data_reg_formatada, reg['tipo'], reg['descricao'], data_ret_formatada])
+    # Renderiza um template HTML passando os dados em formato JSON (texto)
+    html_content = render_template(
+        'core/exportacao_offline.html',
+        pet_json=json.dumps(pet_dict),
+        registros_json=json.dumps(registros_dict)
+    )
 
-    # Construímos o ficheiro usando o make_response
-    output = make_response(si.getvalue())
-    
-    # Configuramos o cabeçalho para forçar o download seguro
+    # Cria a resposta forçando o download de um arquivo .html
+    output = make_response(html_content)
     nome_seguro = pet['nome'].replace(' ', '_')
-    output.headers["Content-Disposition"] = f"attachment; filename=prontuario_{nome_seguro}.csv"
-    output.headers["Content-type"] = "text/csv; charset=utf-8"
+    output.headers["Content-Disposition"] = f"attachment; filename=relatorio_{nome_seguro}.html"
+    output.headers["Content-type"] = "text/html; charset=utf-8"
     
     return output
+
+@bp.route('/api/racas/<especie>')
+@login_required
+def api_racas(especie):
+    import urllib.request
+    import json
+    from flask import jsonify
+
+    if especie == 'Cachorro':
+        url = 'https://api.thedogapi.com/v1/breeds'
+        api_key = 'live_kR0OpYbrakeLp7BHt5WSfrAfaSV8EGsph5cOmmGKBo7mzbAE0vmWkLMl7EDK0DrI'
+        try:
+            req = urllib.request.Request(url, headers={'x-api-key': api_key})
+            with urllib.request.urlopen(req) as resposta:
+                dados = json.loads(resposta.read().decode('utf-8'))
+                return jsonify(dados)
+        except Exception as e:
+            print(f"Erro na API externa (Cão): {e}")
+            return jsonify({'erro': 'Falha na comunicação com a API externa'}), 500
+
+    elif especie == 'Gato':
+        # Retorna uma lista estática instantânea, sem depender de chaves externas
+        racas_gatos = [
+            {"name": "Persa"},
+            {"name": "Siamês"},
+            {"name": "Maine Coon"},
+            {"name": "Angorá"},
+            {"name": "Sphynx"},
+            {"name": "Ragdoll"},
+            {"name": "British Shorthair"},
+            {"name": "Bengal"}
+        ]
+        return jsonify(racas_gatos)
+
+    else:
+        return jsonify({'erro': 'Espécie inválida'}), 400

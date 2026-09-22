@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Médico Offline</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; background-color: #f9fafb; color: #1f2937; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #0d9488; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+        .info-pet { display: flex; gap: 20px; background: #f3f4f6; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #d1d5db; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background-color: #0d9488; color: white; }
+        tr:hover { background-color: #f9fafb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Prontuário Médico: <span id="pet-nome"></span></h1>
+        
+        <div class="info-pet">
+            <p><strong>Espécie:</strong> <span id="pet-especie"></span></p>
+            <p><strong>Raça:</strong> <span id="pet-raca"></span></p>
+            <p><strong>Microchip:</strong> <span id="pet-microchip"></span></p>
+        </div>
+
+        <!-- O campo de busca atende ao requisito de JS funcionando offline -->
+        <input type="text" id="filtro" placeholder="Pesquisar por tipo (ex: Vacina) ou descrição..." onkeyup="filtrarRegistros()">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Data do Registro</th>
+                    <th>Tipo</th>
+                    <th>Descrição</th>
+                    <th>Data de Retorno</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-corpo">
+                <!-- Linhas geradas pelo JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Elementos HTML invisíveis que guardam o JSON -->
+    <script id="pet-data" type="application/json">
+        {{ pet_json | safe }}
+    </script>
+    <script id="registros-data" type="application/json">
+        {{ registros_json | safe }}
+    </script>
+
+    <script>
+        // O JavaScript agora lê o conteúdo de texto dos elementos acima e converte para objeto
+        const pet = JSON.parse(document.getElementById('pet-data').textContent);
+        const registros = JSON.parse(document.getElementById('registros-data').textContent);
+
+        // Preenche o cabeçalho
+        document.getElementById('pet-nome').textContent = pet.nome;
+        document.getElementById('pet-especie').textContent = pet.especie;
+        document.getElementById('pet-raca').textContent = pet.raca || 'Não informada';
+        document.getElementById('pet-microchip').textContent = pet.numero_microchip || 'Sem microchip';
+
+        // Função para inverter a data de AAAA-MM-DD para DD/MM/AAAA no JS
+        function formatarData(dataISO) {
+            if (!dataISO) return '-';
+            return dataISO.split('-').reverse().join('/');
+        }
+
+        // Função para desenhar a tabela
+        function renderizarTabela(dados) {
+            const tbody = document.getElementById('tabela-corpo');
+            tbody.innerHTML = ''; // Limpa a tabela
+            
+            if (dados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#6b7280;">Nenhum registo encontrado.</td></tr>';
+                return;
+            }
+
+            dados.forEach(reg => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${formatarData(reg.data_registro)}</td>
+                    <td><strong>${reg.tipo}</strong></td>
+                    <td>${reg.descricao}</td>
+                    <td>${formatarData(reg.data_retorno)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Função de filtro para permitir pesquisa local (Offline)
+        function filtrarRegistros() {
+            const termo = document.getElementById('filtro').value.toLowerCase();
+            const filtrados = registros.filter(reg => 
+                reg.tipo.toLowerCase().includes(termo) || 
+                reg.descricao.toLowerCase().includes(termo)
+            );
+            renderizarTabela(filtrados);
+        }
+
+        // Inicializa a tabela quando o ficheiro é aberto
+        renderizarTabela(registros);
+    </script>
+</body>
+</html>
