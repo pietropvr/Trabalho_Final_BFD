@@ -198,16 +198,18 @@
         <aside class="sidebar">
             <header>
                 <h1 style="display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 1.6rem;">
-    <span style="font-size: 2rem;">🐾</span> Caderneta PET
+                    <span style="font-size: 2rem;">🐾</span> Caderneta PET
                 </h1>
             </header>
             
-            <!-- Acessibilidade: aria-label orienta os leitores de ecrã -->
             <nav aria-label="Menu de Navegação Principal">
+                <!-- Links baseados no wireframe -->
                 <a href="{{ url_for('core.index') }}">Dashboard</a>
                 
                 {% if g.tutor %}
-                    <!-- Aqui pode adicionar rotas futuras como "Novo Pet" ou "Perfil" -->
+                    <a href="{{ url_for('core.index') }}">Meus Pets</a>
+                    <a href="{{ url_for('core.novo_pet') }}">Adicionar Pet</a>
+                    <a href="{{ url_for('core.perfil') }}">Perfil</a>
                     <a href="{{ url_for('auth.logout') }}">Sair</a>
                 {% else %}
                     <a href="{{ url_for('auth.login') }}">Entrar</a>

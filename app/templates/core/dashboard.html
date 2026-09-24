@@ -43,14 +43,27 @@
             <p><strong>Raça:</strong> {{ pet['raca'] or 'Não informada' }}</p>
             <p><strong>Microchip:</strong> {{ pet['numero_microchip'] or 'Sem microchip' }}</p>
             
-            <div style="margin-top: 15px;">
-              <a href="{{ url_for('core.editar_pet', id=pet['id']) }}" style="margin-right: 15px; text-decoration: none; color: #0284c7; font-weight: bold;">Editar</a>
-              
-              <form action="{{ url_for('core.excluir_pet', id=pet['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir este pet? Todos os registros médicos dele serão perdidos.');">
-                <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline; font-weight: bold; padding: 0; font-size: 16px;">Excluir</button>
-              </form>
-
-              <a href="{{ url_for('core.prontuario', id=pet['id']) }}" style="margin-right: 15px; text-decoration: none; color: #16a34a; font-weight: bold;">Ver Prontuário</a>
+            <!-- Ações do Pet (Editar, Excluir, Prontuário) com Ícones PNG -->
+            <div style="display: flex; gap: 12px; margin-top: 20px; align-items: center; flex-wrap: wrap;">
+                
+                <a href="{{ url_for('core.editar_pet', id=pet['id']) }}" style="display: inline-flex; align-items: center; text-decoration: none; color: #0284c7; background: #e0f2fe; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; transition: background 0.3s;">
+                    <img src="{{ url_for('static', filename='lapis.png') }}" alt="Ícone Editar" style="width: 16px; height: 16px; margin-right: 6px;">
+                    Editar
+                </a>
+                
+                <!-- CORREÇÃO: Utilização de pet.nome para evitar erro de aspas do linter -->
+                <form action="{{ url_for('core.excluir_pet', id=pet['id']) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tem certeza que deseja excluir {{ pet.nome }}? Isso apagará todo o histórico.');">
+                    <button type="submit" style="display: inline-flex; align-items: center; border: none; background: #fee2e2; color: #ef4444; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: pointer; transition: background 0.3s;">
+                        <img src="{{ url_for('static', filename='lixeira.png') }}" alt="Ícone Excluir" style="width: 16px; height: 16px; margin-right: 6px;">
+                        Excluir
+                    </button>
+                </form>
+                
+                <a href="{{ url_for('core.prontuario', id=pet['id']) }}" style="display: inline-flex; align-items: center; text-decoration: none; color: #047857; background: #d1fae5; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; transition: background 0.3s;">
+                    <img src="{{ url_for('static', filename='prontuario.png') }}" alt="Ícone Prontuário" style="width: 16px; height: 16px; margin-right: 6px;">
+                    Ver Prontuário
+                </a>
+                
             </div>
           </li>
         {% endfor %}
