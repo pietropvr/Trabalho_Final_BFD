@@ -10,7 +10,7 @@
   {% if alertas %}
     <section style="background: #fffbeb; border-left: 5px solid #f59e0b; padding: 15px 20px; margin-bottom: 30px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
       <h3 style="margin-top: 0; color: #b45309; display: flex; align-items: center;">
-        <span style="font-size: 1.2em; margin-right: 8px;">⚠️</span> Alertas de Saúde
+        <img src="{{ url_for('static', filename='alerta.png') }}" alt="Ícone Alerta" style="width: 22px; height: 22px; margin-right: 8px; object-fit: contain;"> Alertas de Saúde
       </h3>
       <ul style="list-style: none; padding: 0; margin: 0;">
         {% for alerta in alertas %}
@@ -51,7 +51,6 @@
                     Editar
                 </a>
                 
-                <!-- CORREÇÃO: Utilização de pet.nome para evitar erro de aspas do linter -->
                 <form action="{{ url_for('core.excluir_pet', id=pet['id']) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tem certeza que deseja excluir {{ pet.nome }}? Isso apagará todo o histórico.');">
                     <button type="submit" style="display: inline-flex; align-items: center; border: none; background: #fee2e2; color: #ef4444; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9em; cursor: pointer; transition: background 0.3s;">
                         <img src="{{ url_for('static', filename='lixeira.png') }}" alt="Ícone Excluir" style="width: 16px; height: 16px; margin-right: 6px;">

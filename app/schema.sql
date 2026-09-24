@@ -6,12 +6,13 @@ DROP TABLE IF EXISTS registro_medico;
 DROP TABLE IF EXISTS pet;
 DROP TABLE IF EXISTS tutor;
 
--- Tabela TUTOR: Armazena os donos dos pets
+-- Tabela TUTOR: Armazena os donos dos pets (com suporte a ambos os nomes de coluna de senha)
 CREATE TABLE tutor (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL, 
-    senha TEXT NOT NULL 
+    senha TEXT, 
+    senha_hash TEXT
 );
 
 -- Tabela PET: Armazena os animais, vinculados a um tutor
@@ -22,10 +23,9 @@ CREATE TABLE pet (
     especie TEXT NOT NULL,
     raca TEXT,
     data_nascimento DATE,
-    peso REAL,            -- Corrigido para "peso" para combinar com o backend
-    microchip TEXT UNIQUE, -- Corrigido para "microchip" para combinar com o backend
+    peso REAL,            
+    microchip TEXT UNIQUE, 
     
-    -- ON DELETE CASCADE: Se o tutor for apagado, os pets dele também são
     FOREIGN KEY (tutor_id) REFERENCES tutor(id) ON DELETE CASCADE
 );
 
@@ -38,6 +38,5 @@ CREATE TABLE registro_medico (
     data_registro DATE NOT NULL,
     data_retorno DATE,
     
-    -- ON DELETE CASCADE: Se o pet for apagado, os registos médicos dele também são
     FOREIGN KEY (pet_id) REFERENCES pet(id) ON DELETE CASCADE
 );
