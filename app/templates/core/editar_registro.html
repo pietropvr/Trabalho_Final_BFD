@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <header style="margin-bottom: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px;">
+      <h2 style="color: #064e3b; display: flex; align-items: center; gap: 10px; margin: 0;">
+          <span style="font-size: 1.5rem;">📝</span> Editar Registo de {{ registro['nome'] }}
+      </h2>
+  </header>
+
+  <!-- Container do formulário com sombra e bordas suaves -->
+  <div style="background: #ffffff; padding: 30px; border-radius: 8px; border: 1px solid #e5e7eb; max-width: 500px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    <form method="post">
+      
+      <!-- Os inputs não precisam mais de 'style="width: 100%"' pois o nosso base.html já faz isso automaticamente! -->
+      <label for="tipo" style="font-weight: bold; color: #1f2937;">Tipo de Registo</label>
+      <select name="tipo" id="tipo" required>
+        <option value="Vacina" {% if registro['tipo'] == 'Vacina' %}selected{% endif %}>Vacina</option>
+        <option value="Consulta" {% if registro['tipo'] == 'Consulta' %}selected{% endif %}>Consulta Veterinária</option>
+        <option value="Vermífugo" {% if registro['tipo'] == 'Vermífugo' %}selected{% endif %}>Vermífugo / Desparasitante</option>
+        <option value="Exame" {% if registro['tipo'] == 'Exame' %}selected{% endif %}>Exame Médico</option>
+        <option value="Cirurgia" {% if registro['tipo'] == 'Cirurgia' %}selected{% endif %}>Cirurgia</option>
+        <option value="Outro" {% if registro['tipo'] == 'Outro' %}selected{% endif %}>Outro</option>
+      </select>
+
+      <label for="descricao" style="display: block; font-weight: bold; color: #1f2937;">Descrição / Detalhes</label>
+      <input type="text" name="descricao" id="descricao" value="{{ registro['descricao'] }}" required>
+
+      <label for="data_registro" style="display: block; font-weight: bold; color: #1f2937;">Data do Registo</label>
+      <input type="date" name="data_registro" id="data_registro" value="{{ registro['data_registro'] }}" required>
+
+      <label for="data_retorno" style="display: block; font-weight: bold; color: #1f2937;">Data de Retorno (Opcional)</label>
+      <input type="date" name="data_retorno" id="data_retorno" value="{{ registro['data_retorno'] }}">
+
+      <!-- Botões de Ação Lado a Lado -->
+      <div style="display: flex; gap: 15px; margin-top: 15px;">
+          <button type="submit" style="flex: 2; background: #10b981; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem;">Guardar Alterações</button>
+          
+          <a href="{{ url_for('core.prontuario', id=registro['pet_id']) }}" style="flex: 1; text-align: center; background: #f3f4f6; color: #4b5563; padding: 12px; border-radius: 5px; text-decoration: none; font-weight: bold; border: 1px solid #d1d5db; transition: background 0.3s;">Cancelar</a>
+      </div>
+
+    </form>
+  </div>
+{% endblock %}

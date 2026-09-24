@@ -1,16 +1,18 @@
 -- Ativa o suporte a chaves estrangeiras no SQLite
 PRAGMA foreign_keys = ON;
 
+-- Apaga as tabelas antigas na ordem correta (filhos primeiro, depois pais)
 DROP TABLE IF EXISTS registro_medico;
 DROP TABLE IF EXISTS pet;
 DROP TABLE IF EXISTS tutor;
 
--- Tabela TUTOR: Armazena os donos dos pets
+-- Tabela TUTOR: Armazena os donos dos pets (com suporte a ambos os nomes de coluna de senha)
 CREATE TABLE tutor (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL, -- UNIQUE garante que não existam dois tutores com o mesmo email
-    senha_hash TEXT NOT NULL    -- Senhas nunca devem ser salvas em texto plano
+    email TEXT UNIQUE NOT NULL, 
+    senha TEXT, 
+    senha_hash TEXT
 );
 
 -- Tabela PET: Armazena os animais, vinculados a um tutor
@@ -18,25 +20,23 @@ CREATE TABLE pet (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tutor_id INTEGER NOT NULL,
     nome TEXT NOT NULL,
-    especie TEXT NOT NULL,      -- Ex: Cão, Gato
+    especie TEXT NOT NULL,
     raca TEXT,
     data_nascimento DATE,
-    peso_atual_kg REAL,
-    numero_microchip TEXT UNIQUE, -- Opcional, UNIQUE garante que dois pets não tenham o mesmo chip
-    -- Chave Estrangeira: Conecta o Pet ao seu Tutor correspondente
-    FOREIGN KEY (tutor_id) REFERENCES tutor(id)
+    peso REAL,            
+    microchip TEXT UNIQUE, 
+    
+    FOREIGN KEY (tutor_id) REFERENCES tutor(id) ON DELETE CASCADE
 );
 
 -- Tabela REGISTRO_MEDICO: Armazena o prontuário, vinculado a um pet
 CREATE TABLE registro_medico (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     pet_id INTEGER NOT NULL,
-    tipo_registro TEXT NOT NULL, -- Ex: Vacina, Consulta, Vermífugo
-    nome_evento TEXT NOT NULL,
-    data_evento DATE NOT NULL,
-    data_proxima_dose DATE,      -- Opcional, sem restrição NOT NULL
-    nome_veterinario TEXT,
-    observacoes TEXT,
-    -- Chave Estrangeira: Conecta o prontuário ao respectivo Pet
-    FOREIGN KEY (pet_id) REFERENCES pet(id)
+    tipo TEXT NOT NULL,
+    descricao TEXT NOT NULL,
+    data_registro DATE NOT NULL,
+    data_retorno DATE,
+    
+    FOREIGN KEY (pet_id) REFERENCES pet(id) ON DELETE CASCADE
 );

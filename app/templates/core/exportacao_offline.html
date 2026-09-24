@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Médico Offline</title>
+    <!-- Fonte Nunito (Se o utilizador não tiver internet ao abrir o arquivo, o navegador usará Tahoma/sans-serif como backup) -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Nunito', Tahoma, sans-serif; padding: 30px; background-color: #f3f4f6; color: #1f2937; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #064e3b; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .info-pet { display: flex; flex-wrap: wrap; gap: 20px; background: #f9fafb; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #d1d5db; }
+        .info-pet p { margin: 0; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #d1d5db; border-radius: 5px; box-sizing: border-box; font-size: 16px; outline: none; transition: border-color 0.3s; }
+        input:focus { border-color: #10b981; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background-color: #064e3b; color: white; }
+        tr:hover { background-color: #f3f4f6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span>🐾</span> Prontuário Médico: <span id="pet-nome"></span></h1>
+        
+        <div class="info-pet">
+            <p><strong>Espécie:</strong> <span id="pet-especie"></span></p>
+            <p><strong>Raça:</strong> <span id="pet-raca"></span></p>
+            <!-- Ajustado para ler o campo "peso" correto -->
+            <p><strong>Peso (kg):</strong> <span id="pet-peso"></span></p>
+            <!-- Ajustado para ler o campo "microchip" correto -->
+            <p><strong>Microchip:</strong> <span id="pet-microchip"></span></p>
+        </div>
+
+        <!-- O campo de busca atende ao requisito 2.3 de JS funcionando offline -->
+        <input type="text" id="filtro" placeholder="Pesquisar por tipo (ex: Vacina) ou descrição..." onkeyup="filtrarRegistros()" aria-label="Pesquisar registros médicos">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Descrição</th>
+                    <th>Retorno</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-corpo">
+                <!-- Linhas geradas pelo JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Elementos HTML invisíveis que guardam os dados vindos do Python (Flask) -->
+    <script id="pet-data" type="application/json">
+        {{ pet_json | safe }}
+    </script>
+    <script id="registros-data" type="application/json">
+        {{ registros_json | safe }}
+    </script>
+
+    <script>
+        // Lê o conteúdo de texto dos elementos acima e converte para objeto JavaScript
+        const pet = JSON.parse(document.getElementById('pet-data').textContent);
+        const registros = JSON.parse(document.getElementById('registros-data').textContent);
+
+        // Preenche o cabeçalho com os nomes corretos do banco de dados
+        document.getElementById('pet-nome').textContent = pet.nome;
+        document.getElementById('pet-especie').textContent = pet.especie;
+        document.getElementById('pet-raca').textContent = pet.raca || 'Não informada';
+        document.getElementById('pet-peso').textContent = pet.peso ? pet.peso.toFixed(1) : 'Não informado';
+        document.getElementById('pet-microchip').textContent = pet.microchip || 'Sem microchip';
+
+        // Função para formatar a data de YYYY-MM-DD para DD/MM/AAAA
+        function formatarData(dataISO) {
+            if (!dataISO) return '-';
+            return dataISO.split('-').reverse().join('/');
+        }
+
+        // Função para desenhar a tabela
+        function renderizarTabela(dados) {
+            const tbody = document.getElementById('tabela-corpo');
+            tbody.innerHTML = ''; 
+            
+            if (dados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#6b7280; padding: 20px;">Nenhum registro encontrado.</td></tr>';
+                return;
+            }
+
+            dados.forEach(reg => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${formatarData(reg.data_registro)}</td>
+                    <td><strong>${reg.tipo}</strong></td>
+                    <td>${reg.descricao}</td>
+                    <td>${formatarData(reg.data_retorno)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Função de filtro local
+        function filtrarRegistros() {
+            const termo = document.getElementById('filtro').value.toLowerCase();
+            const filtrados = registros.filter(reg => 
+                reg.tipo.toLowerCase().includes(termo) || 
+                reg.descricao.toLowerCase().includes(termo)
+            );
+            renderizarTabela(filtrados);
+        }
+
+        // Inicializa a tabela
+        renderizarTabela(registros);
+    </script>
+</body>
+</html>

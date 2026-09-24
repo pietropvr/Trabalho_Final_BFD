@@ -1,4 +1,5 @@
 import functools
+import re
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, g
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.db import get_db
@@ -12,25 +13,33 @@ def register():
         nome = request.form['nome']
         email = request.form['email']
         senha = request.form['senha']
+        confirmar_senha = request.form['confirmar_senha']
+        
         db = get_db()
         erro = None
 
         if not email or not senha:
             erro = 'Email e senha são obrigatórios.'
+        elif not re.match(r"[^@]+@[^@]+\.[^@]+", email): # Valida o formato de e-mail
+            erro = 'Por favor, insira um endereço de e-mail válido.'
+        elif senha != confirmar_senha:
+            erro = 'As senhas não coincidem. Tente novamente.'
 
         if erro is None:
             try:
-                # generate_password_hash garante que a senha vire um texto embaralhado e seguro no banco
                 db.execute(
                     "INSERT INTO tutor (nome, email, senha_hash) VALUES (?, ?, ?)",
                     (nome, email, generate_password_hash(senha))
                 )
                 db.commit()
+                flash('Cadastro realizado com sucesso! Faça seu login.', 'success')
                 return redirect(url_for('auth.login'))
             except db.IntegrityError:
+                # O banco acusa erro se tentarmos duplicar um email (regra UNIQUE)
                 erro = f"O email {email} já está cadastrado."
 
-        flash(erro) # Mostra o erro na tela (precisaremos adicionar suporte a flash no base.html depois)
+        if erro:
+            flash(erro, 'error')
 
     return render_template('auth/register.html')
 

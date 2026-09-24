@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; text-align: center;">
+    
+    <!-- Logo Patas inserida no topo -->
+    <img src="{{ url_for('static', filename='patas.png') }}" alt="Logo Caderneta PET" style="width: 55px; height: 55px; margin-bottom: 15px; object-fit: contain;">
+
+    <h2 style="color: #064e3b; margin-bottom: 25px;">Cadastrar Novo Pet</h2>
+    
+    <form method="post" style="text-align: left;">
+        <label for="nome" style="font-weight: bold; color: #374151;">Nome do Pet</label>
+        <input name="nome" id="nome" required placeholder="Ex: Rex">
+
+        <label for="especie" style="font-weight: bold; color: #374151; margin-top: 15px; display: block;">Espécie</label>
+        <select name="especie" id="especie" required>
+            <option value="">Selecione a espécie...</option>
+            <option value="Cachorro">Cachorro</option>
+            <option value="Gato">Gato</option>
+        </select>
+
+        <label for="raca" style="font-weight: bold; color: #374151; margin-top: 15px; display: block;">Raça</label>
+        <input name="raca" id="raca" required placeholder="Digite ou selecione a raça">
+
+        <label for="data_nascimento" style="font-weight: bold; color: #374151; margin-top: 15px; display: block;">Data de Nascimento</label>
+        <input type="date" name="data_nascimento" id="data_nascimento" required>
+
+        <label for="peso_atual_kg" style="font-weight: bold; color: #374151; margin-top: 15px; display: block;">Peso (kg)</label>
+        <input type="number" step="0.1" name="peso_atual_kg" id="peso_atual_kg" required placeholder="Ex: 5.5">
+
+        <label for="numero_microchip" style="font-weight: bold; color: #374151; margin-top: 15px; display: block;">Número do Microchip (Opcional)</label>
+        <input name="numero_microchip" id="numero_microchip" placeholder="Deixe em branco se não possuir">
+
+        <div style="display: flex; gap: 15px; margin-top: 25px;">
+            <button type="submit" style="flex: 2; background: #10b981; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 800; font-size: 1.1rem; cursor: pointer; transition: filter 0.3s;">
+                Cadastrar Pet
+            </button>
+            <a href="{{ url_for('core.index') }}" style="flex: 1; display: flex; align-items: center; justify-content: center; background: #f3f4f6; color: #4b5563; border-radius: 8px; text-decoration: none; font-weight: bold; border: 1px solid #d1d5db; transition: background 0.3s;">
+                Cancelar
+            </a>
+        </div>
+    </form>
+    
+<script>
+  // O uso do "async" permite que a função espere pela resposta da API sem congelar a página para o utilizador
+  async function carregarRacas() {
+    // 1. Captura os elementos do HTML que vamos ler e manipular
+    const especie = document.getElementById('especie').value; // O valor escolhido (Cachorro/Gato)
+    const datalist = document.getElementById('lista-racas');  // A lista onde vamos injetar as opções
+    const inputRaca = document.getElementById('raca');        // O campo onde o tutor digita
+
+    // 2. Limpa qualquer resultado anterior caso o utilizador mude de "Cachorro" para "Gato"
+    datalist.innerHTML = '';
+
+    // 3. Adiciona sempre a opção padrão no topo da lista
+    const optSrd = document.createElement('option');
+    optSrd.value = 'SRD (Sem Raça Definida)';
+    datalist.appendChild(optSrd);
+
+    // Se nenhuma espécie for selecionada, interrompe a execução da função
+    if (!especie) return;
+
+    // 4. Feedback visual: avisa o utilizador sobre o carregamento e bloqueia o campo temporariamente
+    inputRaca.placeholder = "A carregar raças da API...";
+    inputRaca.disabled = true;
+
+    try {
+      // 1. Aponta para a API segura que criámos no nosso backend (Flask)
+      const urlLocal = `/api/racas/${especie}`;
+
+      // 2. FAZ O PEDIDO
+      const resposta = await fetch(urlLocal);
+      
+      // 3. Valida se o Flask respondeu com sucesso
+      if (!resposta.ok) {
+        throw new Error('Falha no servidor interno: ' + resposta.status);
+      }
+
+      // 4. Converte os dados e preenche a lista
+      const racas = await resposta.json();
+
+      // 5. Percorre a lista de raças devolvida e cria as tags <option> dinamicamente
+      racas.forEach(raca => {
+        const opcao = document.createElement('option');
+        opcao.value = raca.name; // .name é a chave que a The Dog/Cat API usa para o nome da raça
+        datalist.appendChild(opcao);
+      });
+
+      // Restaura o campo indicando que a lista está pronta para uso
+      inputRaca.placeholder = "Clique para selecionar ou digite a raça...";
+      
+    } catch (erro) {
+      // Se a API cair ou faltar internet, avisa no console e permite a digitação manual
+      console.error('Erro de integração com a API externa:', erro);
+      inputRaca.placeholder = "Erro na API. Digite a raça manualmente.";
+      
+    } finally {
+      // O finally executa sempre, dando certo ou errado, para garantir que o campo é desbloqueado
+      inputRaca.disabled = false;
+    }
+  }
+
+  // Ligação do evento via JavaScript Puro (Bulletproof)
+  document.addEventListener('DOMContentLoaded', function() {
+    // 1. Procura o elemento da espécie na página
+    const selectEspecie = document.getElementById('especie');
+    
+    // 2. Se o elemento existir, adiciona o escutador de eventos
+    if (selectEspecie) {
+      selectEspecie.addEventListener('change', carregarRacas);
+    }
+  });
+</script>
+
+{% endblock %}
