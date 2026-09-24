@@ -1,15 +1,24 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h2>Login</h2>
-  <form method="post">
-    <label for="email">Email</label>
-    <input name="email" id="email" required>
+<div style="max-width: 400px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+    <h2 style="text-align: center; color: #064e3b; margin-bottom: 25px;">Bem-vindo de volta!</h2>
     
-    <label for="senha">Senha</label>
-    <input type="password" name="senha" id="senha" required>
+    <form method="post">
+        <label for="email" style="font-weight: bold; color: #374151;">E-mail</label>
+        <input name="email" id="email" type="email" required placeholder="seu@email.com">
+
+        <label for="senha" style="font-weight: bold; color: #374151; margin-top: 15px; display: block;">Senha</label>
+        <input name="senha" id="senha" type="password" required placeholder="••••••••">
+
+        <button type="submit" style="width: 100%; background: #10b981; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 800; font-size: 1.1rem; cursor: pointer; margin-top: 20px; transition: filter 0.3s;">
+            Entrar no Sistema
+        </button>
+    </form>
     
-    <button type="submit">Entrar</button>
-  </form>
-  <p>Não tem conta? <a href="{{ url_for('auth.register') }}">Cadastre-se</a></p>
+    <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #f3f4f6;">
+        <span style="color: #6b7280; font-size: 0.95em;">Não tem conta?</span>
+        <a href="{{ url_for('auth.register') }}" style="color: #10b981; font-weight: bold; text-decoration: none; margin-left: 5px;">Cadastre-se grátis</a>
+    </div>
+</div>
 {% endblock %}
