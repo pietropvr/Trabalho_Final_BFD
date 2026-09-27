@@ -15,7 +15,11 @@ CREATE TABLE tutor (
     senha_hash TEXT
 );
 
+<<<<<<< HEAD
 -- Tabela PET (adicionado o campo foto)
+=======
+-- Tabela PET: Armazena os animais, vinculados a um tutor
+>>>>>>> 9b358b82beb7b44c00cb676cb121f838cb0eb7cd
 CREATE TABLE pet (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tutor_id INTEGER NOT NULL,
@@ -24,12 +28,21 @@ CREATE TABLE pet (
     raca TEXT,
     data_nascimento DATE,
     peso REAL,            
+<<<<<<< HEAD
     microchip TEXT UNIQUE,
     foto TEXT DEFAULT 'default.png', 
     FOREIGN KEY (tutor_id) REFERENCES tutor(id) ON DELETE CASCADE
 );
 
 -- Tabela REGISTRO_MEDICO (adicionado o campo concluido)
+=======
+    microchip TEXT UNIQUE, 
+    
+    FOREIGN KEY (tutor_id) REFERENCES tutor(id) ON DELETE CASCADE
+);
+
+-- Tabela REGISTRO_MEDICO: Armazena o prontuário, vinculado a um pet
+>>>>>>> 9b358b82beb7b44c00cb676cb121f838cb0eb7cd
 CREATE TABLE registro_medico (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     pet_id INTEGER NOT NULL,
@@ -37,6 +50,10 @@ CREATE TABLE registro_medico (
     descricao TEXT NOT NULL,
     data_registro DATE NOT NULL,
     data_retorno DATE,
+<<<<<<< HEAD
     concluido BOOLEAN DEFAULT 0,
+=======
+    
+>>>>>>> 9b358b82beb7b44c00cb676cb121f838cb0eb7cd
     FOREIGN KEY (pet_id) REFERENCES pet(id) ON DELETE CASCADE
 );

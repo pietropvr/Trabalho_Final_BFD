@@ -3,7 +3,11 @@
 {% block content %}
   <header style="margin-bottom: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px;">
       <h2 style="color: #064e3b; display: flex; align-items: center; gap: 10px; margin: 0;">
+<<<<<<< HEAD
           <span style="font-size: 1.5rem;">📝</span> Editar Registro de {{ registro['nome'] }}
+=======
+          <span style="font-size: 1.5rem;">📝</span> Editar Registo de {{ registro['nome'] }}
+>>>>>>> 9b358b82beb7b44c00cb676cb121f838cb0eb7cd
       </h2>
   </header>
 
@@ -12,7 +16,11 @@
     <form method="post">
       
       <!-- Os inputs não precisam mais de 'style="width: 100%"' pois o nosso base.html já faz isso automaticamente! -->
+<<<<<<< HEAD
       <label for="tipo" style="font-weight: bold; color: #1f2937;">Tipo de Registro</label>
+=======
+      <label for="tipo" style="font-weight: bold; color: #1f2937;">Tipo de Registo</label>
+>>>>>>> 9b358b82beb7b44c00cb676cb121f838cb0eb7cd
       <select name="tipo" id="tipo" required>
         <option value="Vacina" {% if registro['tipo'] == 'Vacina' %}selected{% endif %}>Vacina</option>
         <option value="Consulta" {% if registro['tipo'] == 'Consulta' %}selected{% endif %}>Consulta Veterinária</option>
@@ -25,7 +33,11 @@
       <label for="descricao" style="display: block; font-weight: bold; color: #1f2937;">Descrição / Detalhes</label>
       <input type="text" name="descricao" id="descricao" value="{{ registro['descricao'] }}" required>
 
+<<<<<<< HEAD
       <label for="data_registro" style="display: block; font-weight: bold; color: #1f2937;">Data do Registro</label>
+=======
+      <label for="data_registro" style="display: block; font-weight: bold; color: #1f2937;">Data do Registo</label>
+>>>>>>> 9b358b82beb7b44c00cb676cb121f838cb0eb7cd
       <input type="date" name="data_registro" id="data_registro" value="{{ registro['data_registro'] }}" required>
 
       <label for="data_retorno" style="display: block; font-weight: bold; color: #1f2937;">Data de Retorno (Opcional)</label>
