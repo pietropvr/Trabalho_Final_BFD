@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <header style="margin-bottom: 25px;">
+      <h2 style="color: #064e3b; margin-bottom: 5px;">Dashboard - Visão Geral</h2>
+      <p style="color: #6b7280; margin: 0;">Acompanhe os procedimentos agendados e atrasados dos seus pets.</p>
+  </header>
+  
+  {% if alertas %}
+    <section style="background: #fffbeb; border-left: 5px solid #f59e0b; padding: 15px 20px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; color: #b45309; display: flex; align-items: center;">
+        <img src="{{ url_for('static', filename='alerta.png') }}" alt="Ícone Alerta" style="width: 22px; height: 22px; margin-right: 8px; object-fit: contain;"> Procedimentos que exigem atenção
+      </h3>
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for alerta in alertas %}
+          <li style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #fde68a;">
+            <strong>{{ alerta['nome_pet'] }}:</strong> {{ alerta['tipo'] }} ({{ alerta['descricao'] }}) 
+            
+            {% if alerta['status'] == 'vencido' %}
+              <span style="color: #dc2626; font-weight: bold;">- Vencido há {{ alerta['dias_restantes'] }} dia(s) ({{ alerta['data_formatada'] | join('/') }})</span>
+            {% elif alerta['status'] == 'hoje' %}
+              <span style="color: #ea580c; font-weight: bold;">- Vence HOJE! ({{ alerta['data_formatada'] | join('/') }})</span>
+            {% else %}
+              <span style="color: #d97706; font-weight: bold;">- Vence em {{ alerta['dias_restantes'] }} dia(s) ({{ alerta['data_formatada'] | join('/') }})</span>
+            {% endif %}
+            
+            <a href="{{ url_for('core.prontuario', id=alerta['pet_id']) }}" style="margin-left: 10px; font-size: 0.9em; color: #0284c7; text-decoration: none;">Acessar prontuário</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% else %}
+    <div style="background: #ecfdf5; border-left: 5px solid #10b981; padding: 25px; border-radius: 8px; text-align: center;">
+      <h3 style="margin-top: 0; color: #064e3b; font-size: 1.5rem;">Tudo em dia! 🎉</h3>
+      <p style="margin: 0; color: #047857; font-size: 1.1rem;">Não há nenhum procedimento atrasado ou agendado para os próximos dias.</p>
+    </div>
+  {% endif %}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if ("Notification" in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    const dadosAlertasStr = '{{ alertas | tojson | safe }}';
+                    const listaAlertas = JSON.parse(dadosAlertasStr);
+                    
+                    listaAlertas.forEach(alerta => {
+                        if (alerta.status === 'hoje' || alerta.status === 'vencido') {
+                            const storageKey = `notificado_${alerta.pet_id}_${alerta.descricao}`;
+                            if (!localStorage.getItem(storageKey)) {
+                                new Notification(`Aviso: ${alerta.nome_pet}`, {
+                                    body: `${alerta.tipo}: ${alerta.descricao} está ${alerta.status}!`,
+                                    icon: '/static/patas.png'
+                                });
+                                localStorage.setItem(storageKey, 'true');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    });
+  </script>
+{% endblock %}

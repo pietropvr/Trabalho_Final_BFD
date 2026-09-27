@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <style>
+    .card-historico { padding: 15px 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border: 1px solid #e5e7eb; background: #ffffff; }
+    .card-concluido { opacity: 0.8; background: #f9fafb; border-left: 5px solid #10b981; }
+    .card-pendente { border-left: 5px solid #f59e0b; }
+    .status-atrasado { border-left: 5px solid #ef4444; background-color: #fef2f2; }
+    .container-prontuario { display: flex; gap: 40px; flex-wrap: wrap; margin-top: 20px;}
+    .coluna-form { flex: 1; min-width: 300px; background: #f9fafb; padding: 25px; border-radius: 8px; border: 1px solid #e5e7eb; }
+    .coluna-historico { flex: 2; min-width: 300px; }
+  </style>
+
+  <header style="margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        {% set foto_pet = pet['foto'] if pet['foto'] else 'default.png' %}
+        <img src="{{ url_for('static', filename='uploads/' ~ foto_pet) }}" alt="Foto de {{ pet['nome'] }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #10b981;">
+        
+        <div>
+            <h2 style="margin-bottom: 5px;">Prontuário de {{ pet['nome'] }}</h2>
+            <a href="{{ url_for('core.meus_pets') }}" style="text-decoration: none; color: #0284c7; font-weight: bold;">&larr; Voltar para Meus Pets</a>
+        </div>
+      </div>
+      
+      <a href="{{ url_for('core.exportar_prontuario', id=pet['id']) }}" style="background-color: #10b981; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">Exportar PDF/HTML</a>
+  </header>
+
+  <section class="container-prontuario">
+    
+    <div class="coluna-form">
+      <h3 style="margin-top: 0;">Adicionar Novo Registro</h3>
+      <form method="post">
+        <label for="tipo">Tipo de Registro</label>
+        <select name="tipo" id="tipo" required style="width: 100%; padding: 8px; margin-top: 5px;">
+          <option value="" disabled selected>Selecione...</option>
+          <option value="Vacina">Vacina</option>
+          <option value="Consulta">Consulta Veterinária</option>
+          <option value="Vermífugo">Vermífugo / Desparasitante</option>
+          <option value="Exame">Exame Médico</option>
+          <option value="Cirurgia">Cirurgia</option>
+          <option value="Outro">Outro</option>
+        </select>
+
+        <label for="descricao" style="margin-top: 15px; display: block;">Descrição / Detalhes</label>
+        <input type="text" name="descricao" id="descricao" placeholder="Ex: Vacina da Raiva, Clínica XYZ..." required style="width: 100%; padding: 8px; margin-top: 5px;">
+
+        <label for="data_registro" style="margin-top: 15px; display: block;">Data do Registro</label>
+        <input type="date" name="data_registro" id="data_registro" required style="width: 100%; padding: 8px; margin-top: 5px;">
+
+        <label for="data_retorno" style="margin-top: 15px; display: block;">Data de Retorno/Reforço (Opcional)</label>
+        <input type="date" name="data_retorno" id="data_retorno" style="width: 100%; padding: 8px; margin-top: 5px;">
+
+        <button type="submit" style="margin-top: 25px; width: 100%; background: #0d9488; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">Guardar Registro</button>
+      </form>
+    </div>
+
+    <div class="coluna-historico">
+      
+      <!-- Verificação antecipada para resolver o bug do texto -->
+      {% set status = namespace(has_pendentes=false, has_concluidos=false) %}
+      {% for reg in registros %}
+        {% if reg.concluido %}
+            {% set status.has_concluidos = true %}
+        {% else %}
+            {% set status.has_pendentes = true %}
+        {% endif %}
+      {% endfor %}
+      
+      <!-- PROCEDIMENTOS PENDENTES -->
+      <h3 style="margin-top: 0; color: #d97706; display: flex; align-items: center; gap: 8px;">⏳ Procedimentos Pendentes</h3>
+      <ul style="list-style: none; padding: 0; margin: 0 0 30px 0;">
+        {% for reg in registros if not reg.concluido %}
+          <li class="card-historico {% if reg['status_alerta'] == 'atrasado' %}status-atrasado{% else %}card-pendente{% endif %}">
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <strong style="font-size: 1.1em; color: #111827;">{{ reg['tipo'] }}</strong>
+                  <span style="color: #6b7280; font-size: 0.9em; background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">Agendado: {{ reg['data_registro'].split('-') | reverse | join('/') }}</span>
+                </div>
+                <p style="margin: 0 0 10px 0; color: #4b5563;">{{ reg['descricao'] }}</p>
+                {% if reg['data_retorno'] %}
+                  <div style="color: #ea580c; font-weight: bold; font-size: 0.9em; margin-bottom: 10px;">
+                    Retorno: {{ reg['data_retorno'].split('-') | reverse | join('/') }}
+                    {% if reg['status_alerta'] == 'atrasado' %}<span style="background: #dc2626; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 10px;">⚠️ Atrasado</span>{% endif %}
+                  </div>
+                {% endif %}
+                <div style="margin-top: 10px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
+                  <a href="{{ url_for('core.editar_registro', id=reg['id']) }}" style="margin-right: 15px; text-decoration: none; color: #0284c7; font-weight: bold; font-size: 0.9em;">Editar</a>
+                  <form action="{{ url_for('core.excluir_registro', id=reg['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem a certeza que deseja eliminar?');">
+                    <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline; font-weight: bold; padding: 0; font-size: 0.9em;">Eliminar</button>
+                  </form>
+                </div>
+            </div>
+            <div style="text-align: right; min-width: 120px; padding-left: 20px;">
+                <form action="{{ url_for('core.concluir_registro', id=reg['id']) }}" method="POST" style="margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; cursor: pointer; color: #d97706; font-weight: bold;">
+                        <input type="checkbox" onChange="this.form.submit()" style="width: 22px; height: 22px; cursor: pointer;">
+                        Concluir
+                    </label>
+                </form>
+            </div>
+          </li>
+        {% endfor %}
+        
+        <!-- O bloco agora desaparece completamente se houver pendentes -->
+        {% if not status.has_pendentes %}
+          <li style="background: #f9fafb; padding: 20px; text-align: center; border-radius: 8px; border: 1px dashed #d1d5db; color: #6b7280;">Nenhum procedimento pendente.</li>
+        {% endif %}
+      </ul>
+
+      <!-- PROCEDIMENTOS CONCLUÍDOS -->
+      <h3 style="margin-top: 0; color: #10b981; display: flex; align-items: center; gap: 8px;">✅ Histórico de Concluídos</h3>
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for reg in registros if reg.concluido %}
+          <li class="card-historico card-concluido">
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <strong style="font-size: 1.1em; color: #111827;">{{ reg['tipo'] }}</strong>
+                  <span style="color: #6b7280; font-size: 0.9em; background: #e5e7eb; padding: 4px 8px; border-radius: 4px;">Realizado: {{ reg['data_registro'].split('-') | reverse | join('/') }}</span>
+                </div>
+                <p style="margin: 0 0 10px 0; color: #4b5563;">{{ reg['descricao'] }}</p>
+                <div style="margin-top: 10px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
+                  <form action="{{ url_for('core.excluir_registro', id=reg['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem a certeza que deseja eliminar?');">
+                    <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer; text-decoration: underline; font-weight: bold; padding: 0; font-size: 0.9em;">Eliminar Histórico</button>
+                  </form>
+                </div>
+            </div>
+            <div style="text-align: right; min-width: 120px; padding-left: 20px;">
+                <form action="{{ url_for('core.concluir_registro', id=reg['id']) }}" method="POST" style="margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; cursor: pointer; color: #10b981; font-weight: bold;">
+                        <input type="checkbox" onChange="this.form.submit()" checked style="width: 22px; height: 22px; cursor: pointer;">
+                        Concluído
+                    </label>
+                </form>
+            </div>
+          </li>
+        {% endfor %}
+        
+        <!-- O bloco desaparece se houver concluídos -->
+        {% if not status.has_concluidos %}
+          <li style="background: #f9fafb; padding: 20px; text-align: center; border-radius: 8px; border: 1px dashed #d1d5db; color: #6b7280;">Nenhum procedimento concluído ainda.</li>
+        {% endif %}
+      </ul>
+    </div>
+  </section>
+{% endblock %}

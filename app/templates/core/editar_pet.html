@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <header style="margin-bottom: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px;">
+      <h2 style="color: #064e3b; display: flex; align-items: center; gap: 10px; margin: 0;">
+          <span style="font-size: 1.5rem;">✏️</span> Editar Dados de {{ pet['nome'] }}
+      </h2>
+  </header>
+  
+  <div style="background: #ffffff; padding: 30px; border-radius: 8px; border: 1px solid #e5e7eb; max-width: 500px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    <form method="post">
+      
+      <label for="nome" style="font-weight: bold; color: #1f2937;">Nome do Pet</label>
+      <input name="nome" id="nome" value="{{ pet['nome'] }}" required>
+
+      <label for="especie" style="font-weight: bold; color: #1f2937;">Espécie</label>
+      <select name="especie" id="especie" required>
+        <option value="Cachorro" {% if pet['especie'] == 'Cachorro' %}selected{% endif %}>Cachorro</option>
+        <option value="Gato" {% if pet['especie'] == 'Gato' %}selected{% endif %}>Gato</option>
+      </select>
+
+      <label for="raca" style="font-weight: bold; color: #1f2937;">Raça</label>
+      <input name="raca" id="raca" value="{{ pet['raca'] }}" required>
+
+      <label for="data_nascimento" style="font-weight: bold; color: #1f2937;">Data de Nascimento</label>
+      <input type="date" name="data_nascimento" id="data_nascimento" value="{{ pet['data_nascimento'] }}" required>
+
+      <label for="peso" style="font-weight: bold; color: #1f2937;">Peso (kg)</label>
+      <input type="number" step="0.1" name="peso" id="peso" value="{{ pet['peso'] }}" required>
+
+      <label for="numero_microchip" style="font-weight: bold; color: #1f2937;">Número do Microchip (Opcional)</label>
+      <input name="numero_microchip" id="numero_microchip" value="{{ pet['numero_microchip'] }}">
+
+      <!-- Botões de Ação Lado a Lado -->
+      <div style="display: flex; gap: 15px; margin-top: 15px;">
+          <button type="submit" style="flex: 2; background: #10b981; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem;">Salvar Alterações</button>
+          
+          <a href="{{ url_for('core.index') }}" style="flex: 1; text-align: center; background: #f3f4f6; color: #4b5563; padding: 12px; border-radius: 5px; text-decoration: none; font-weight: bold; border: 1px solid #d1d5db; transition: background 0.3s;">Cancelar</a>
+      </div>
+
+    </form>
+  </div>
+{% endblock %}
