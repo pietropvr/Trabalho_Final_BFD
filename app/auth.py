@@ -1,8 +1,10 @@
 import functools
+import re
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.db import get_db
 
+# Cria o Blueprint chamado 'auth'. Todas as rotas terão o prefixo '/auth'
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.route('/register', methods=('GET', 'POST'))
@@ -12,6 +14,7 @@ def register():
         email = request.form['email']
         senha = request.form['senha']
         confirmar_senha = request.form.get('confirmar_senha')
+        
         db = get_db()
         erro = None
 
@@ -19,6 +22,8 @@ def register():
             erro = 'Nome é obrigatório.'
         elif not email:
             erro = 'E-mail é obrigatório.'
+        elif not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            erro = 'Por favor, insira um endereço de e-mail válido.'
         elif not senha:
             erro = 'Senha é obrigatória.'
         elif len(senha) < 6:
@@ -36,10 +41,11 @@ def register():
             except db.IntegrityError:
                 erro = f"O e-mail {email} já está cadastrado."
             else:
-                flash('Cadastro realizado com sucesso! Pode entrar.', 'success')
-                return redirect(url_for("auth.login"))
+                flash('Cadastro realizado com sucesso! Faça seu login.', 'success')
+                return redirect(url_for('auth.login'))
 
-        flash(erro, 'error')
+        if erro:
+            flash(erro, 'error')
 
     return render_template('auth/register.html')
 
@@ -51,9 +57,7 @@ def login():
         db = get_db()
         erro = None
 
-        tutor = db.execute(
-            'SELECT * FROM tutor WHERE email = ?', (email,)
-        ).fetchone()
+        tutor = db.execute('SELECT * FROM tutor WHERE email = ?', (email,)).fetchone()
 
         if tutor is None:
             erro = 'Email ou senha incorretos.'
@@ -61,6 +65,7 @@ def login():
             tutor_dict = dict(tutor)
             senha_valida = False
             
+            # Verificação 1: Tenta validar via Hash de segurança padrão
             if tutor_dict.get('senha_hash') and not senha_valida:
                 try:
                     if check_password_hash(tutor_dict['senha_hash'], senha):
@@ -69,6 +74,7 @@ def login():
                     if tutor_dict['senha_hash'] == senha:
                         senha_valida = True
                         
+            # Verificação 2: Tenta validar via texto limpo na coluna antiga 'senha' (Avaliador)
             if tutor_dict.get('senha') and not senha_valida:
                 if tutor_dict['senha'] == senha:
                     senha_valida = True
@@ -86,6 +92,19 @@ def login():
 
     return render_template('auth/login.html')
 
+@bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('core.index'))
+
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.tutor is None:
+            return redirect(url_for('auth.login'))
+        return view(**kwargs)
+    return wrapped_view
+
 @bp.before_app_request
 def load_logged_in_user():
     user_id = session.get('tutor_id') or session.get('user_id')
@@ -96,16 +115,3 @@ def load_logged_in_user():
         g.tutor = get_db().execute(
             'SELECT * FROM tutor WHERE id = ?', (user_id,)
         ).fetchone()
-
-@bp.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('auth.login'))
-
-def login_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.tutor is None:
-            return redirect(url_for('auth.login'))
-        return view(**kwargs)
-    return wrapped_view
